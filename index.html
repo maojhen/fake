@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>播放清單音樂播放器</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .player-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .cover {
+      width: 100%;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .song-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .artist {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .controls button {
+      background: linear-gradient(145deg, #f0f0f0, #cacaca);
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      font-size: 20px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .controls button:hover {
+      transform: scale(1.1);
+    }
+
+    .label {
+      text-align: left;
+      font-size: 14px;
+      color: #666;
+      margin: 15px 0 5px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #a18cd1;
+    }
+
+    .time-display, .volume-display {
+      font-size: 13px;
+      color: #555;
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 480px) {
+      .player-card {
+        padding: 20px;
+      }
+      .controls button {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+      }
+      .song-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-card">
+    <img class="cover" id="cover" src="cover1.jpg" alt="Album Cover">
+    <div class="song-title" id="title">廖子萱你什麼時候回來</div>
+    <div class="artist" id="artist">廖子萱你什麼時候回來</div>
+
+    <audio id="audio" src="music1.mp3"></audio>
+
+    <div class="controls">
+      <button onclick="prevSong()">⏮️</button>
+      <button onclick="togglePlay()" id="playBtn">▶️</button>
+      <button onclick="nextSong()">⏭️</button>
+      <button onclick="toggleLoopMode()" title="切換播放模式" id="loopBtn">➡️</button>
+    </div>
+
+    <div class="label">播放進度</div>
+    <input type="range" id="progress" value="0">
+    <div class="time-display" id="time">00:00 / 00:00</div>
+
+    <div class="label">音量</div>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+    <div class="volume-display" id="volumeDisplay">音量：100%</div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const title = document.getElementById('title');
+    const artist = document.getElementById('artist');
+    const cover = document.getElementById('cover');
+    const playBtn = document.getElementById('playBtn');
+    const progress = document.getElementById('progress');
+    const timeDisplay = document.getElementById('time');
+    const volume = document.getElementById('volume');
+    const volumeDisplay = document.getElementById('volumeDisplay');
+    const loopBtn = document.getElementById('loopBtn');
+
+    const playlist = [
+      { title: '廖子萱你什麼時候回來', artist: '可憐的榛果', src: '廖子萱你什麼時候回來.mp3', cover: 'img.jpg' },
+      { title: '子萱的長假', artist: '代理人之戰', src: '子萱的長假.mp3', cover: 'img2.jpg' },
+    ];
+
+    let currentIndex = 0;
+    let loopMode = 0; // 0: 順序, 1: 單曲重複, 2: 清單循環
+
+    function loadSong(index) {
+      const song = playlist[index];
+      title.textContent = song.title;
+      artist.textContent = song.artist;
+      cover.src = song.cover;
+      audio.src = song.src;
+      audio.load();
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+        playBtn.textContent = '⏸️';
+      } else {
+        audio.pause();
+        playBtn.textContent = '▶️';
+      }
+    }
+
+    function nextSong() {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      loadSong(currentIndex);
+      audio.play();
+      playBtn.textContent = '⏸️';
+    }
+
+    function prevSong() {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      loadSong(currentIndex);
+      audio.play();
+      playBtn.textContent = '⏸️';
+    }
+
+    function toggleLoopMode() {
+      loopMode = (loopMode + 1) % 3;
+      const icons = ['➡️', '🔂', '🔁'];
+      loopBtn.textContent = icons[loopMode];
+    }
+
+    audio.addEventListener('ended', () => {
+      if (loopMode === 1) {
+        audio.currentTime = 0;
+        audio.play();
+      } else if (loopMode === 2) {
+        nextSong();
+      } else {
+        if (currentIndex < playlist.length - 1) {
+          nextSong();
+        } else {
+          playBtn.textContent = '▶️';
+        }
+      }
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      progress.value = audio.currentTime;
+      updateTimeDisplay();
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      progress.max = audio.duration;
+      updateTimeDisplay();
+    });
+
+    progress.addEventListener('input', () => {
+      audio.currentTime = progress.value;
+    });
+
+    volume.addEventListener('input', () => {
+      audio.volume = volume.value;
+      volumeDisplay.textContent = `音量：${Math.round(volume.value * 100)}%`;
+    });
+
+    function updateTimeDisplay() {
+      const current = formatTime(audio.currentTime);
+      const duration = isNaN(audio.duration) ? "00:00" : formatTime(audio.duration);
+      timeDisplay.textContent = `${current} / ${duration}`;
+    }
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    // 初始化播放器
+    loadSong(currentIndex);
+    volumeDisplay.textContent = `音量：${Math.round(volume.value * 100)}%`;
+  </script>
+
+</body>
+</html>
